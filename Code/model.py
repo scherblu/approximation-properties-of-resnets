@@ -1,0 +1,102 @@
+from torch import nn
+import torch.nn.functional as F
+import torchsummary
+
+
+class ANN(nn.Module):
+    def __init__(self, input_dim, output_dim, width, depth):
+        """
+        Initializes the ANN.
+
+        Parameters:
+            input_dim (int): Dimension of the input.
+            output_dim (int): Dimension of the output.
+            width (int): Number of neurons in each hidden layer.
+            depth (int): Number of hidden layers.
+        """
+        super(ANN, self).__init__()
+
+        # Create a list of layers using ModuleList.
+        self.layers = nn.ModuleList()
+
+        # Input layer: from input_dim to width.
+        self.layers.append(nn.Linear(input_dim, width))
+
+        # Hidden layers: each from width to width.
+        for _ in range(depth - 1):
+            self.layers.append(nn.Linear(width, width))
+
+        # Output layer: from width to output_dim.
+        self.out = nn.Linear(width, output_dim)
+
+    def forward(self, x):
+        # Pass through each hidden layer with ReLU activation.
+        for layer in self.layers:
+            x = F.relu(layer(x))
+        # Compute the final output.
+        x = self.out(x)
+        return x
+
+
+class ResidualBlock(nn.Module):
+    def __init__(self, width):
+        super(ResidualBlock, self).__init__()
+        self.linear1 = nn.Linear(width, width)
+        self.linear2 = nn.Linear(width, width)
+
+    def forward(self, x):
+        identity = x
+        out = F.relu(self.linear1(x))
+        out = self.linear2(out)
+        out += identity  # Skip connection
+        out = F.relu(out)
+        return out
+
+
+# TODO adjust ResNet such that the number of parameters is the same as the ANN
+class ResNet(nn.Module):
+    def __init__(self, input_dim, output_dim, width, depth):
+        """
+        Initializes the ResNet.
+
+        Parameters:
+            input_dim (int): Dimension of the input.
+            output_dim (int): Dimension of the output.
+            width (int): Number of neurons in each hidden layer.
+            depth (int): Number of residual blocks.
+        """
+        super(ResNet, self).__init__()
+
+        # Initial layer: from input_dim to width.
+        self.input_layer = nn.Linear(input_dim, width)
+
+        # Residual blocks.
+        self.blocks = nn.ModuleList([ResidualBlock(width)
+                                     for _ in range(depth)])
+
+        # Output layer: from width to output_dim.
+        self.output_layer = nn.Linear(width, output_dim)
+
+    def forward(self, x):
+        # Project input to the hidden width.
+        x = F.relu(self.input_layer(x))
+
+        # Pass through the residual blocks.
+        for block in self.blocks:
+            x = block(x)
+
+        # Map to the output dimension.
+        x = self.output_layer(x)
+        return x
+
+
+if __name__ == "__main__":
+    # Example usage:
+    model = ANN(input_dim=10, output_dim=2, width=64, depth=3)
+    print(model)
+    # print model summary
+    torchsummary.summary(model, (10,), device="cpu")
+
+    model = ResNet(input_dim=10, output_dim=2, width=64, depth=3)
+    print(model)
+    torchsummary.summary(model, (10,), device="cpu")
