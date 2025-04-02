@@ -3,6 +3,21 @@ from torch.utils.data import TensorDataset, DataLoader, random_split
 import numpy as np
 
 
+def f(X):
+    """
+    Arbitrary complex function to compute outputs for given inputs.
+
+    Parameters:
+        X (np.ndarray): Input array of shape (num_samples, input_dim).
+
+    Returns:
+        np.ndarray: Output array of shape (num_samples, output_dim).
+    """
+    # Example: Compute f(x) = sum(sin(x_i)) + product(cos(x_i)) for each sample
+    return (np.sum(np.sin(X), axis=1, keepdims=True)
+            + np.prod(np.cos(X), axis=1, keepdims=True))
+
+
 def get_dataloaders(num_samples, input_dim, output_dim,
                     batch_size, test_split=0.2, seed=42):
     """
@@ -26,9 +41,8 @@ def get_dataloaders(num_samples, input_dim, output_dim,
     X = np.random.uniform(0, 1, (num_samples, input_dim)).astype(np.float32)
     X_tensor = torch.from_numpy(X)
 
-    # Compute f(x) = sum(sin(x_i)) for each sample.
-    # f returns a scalar value, so add an extra dimension to match output_dim.
-    y = np.sum(np.sin(X), axis=1, keepdims=True).astype(np.float32)
+    # Compute f(x) using the external function.
+    y = f(X).astype(np.float32)
     y_tensor = torch.from_numpy(y)
 
     # Create the full dataset.
