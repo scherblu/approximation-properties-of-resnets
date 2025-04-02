@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 import torch.optim as optim
 from tqdm import tqdm
@@ -17,7 +18,9 @@ def train_model(model, train_loader, epochs, learning_rate=1e-3, device='cpu'):
     Returns:
         model (nn.Module): The trained model.
     """
+    torch.manual_seed(42)
     model.to(device)
+    model.eval()
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     
@@ -40,11 +43,9 @@ def train_model(model, train_loader, epochs, learning_rate=1e-3, device='cpu'):
             optimizer.step()
             
             running_loss += loss.item()
-            progress_bar.set_postfix({'Batch': batch_idx + 1,
-                                      'Loss': loss.item()})
-        
-        epoch_loss = running_loss / len(train_loader)
-        print(f"Epoch {epoch+1}/{epochs} completed."
-              + f"Average Loss: {epoch_loss:.6f}")
-    
+            progress_bar.set_postfix({
+                            'Batch': batch_idx + 1,
+                            'Avg Loss': running_loss / (batch_idx + 1)
+            })
+
     return model

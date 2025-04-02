@@ -7,7 +7,7 @@ def get_dataloaders(num_samples, input_dim, output_dim,
                     batch_size, test_split=0.2, seed=42):
     """
     Generates training and test DataLoaders.
-    
+
     Parameters:
         num_samples (int): Total number of samples.
         input_dim (int): Dimensionality of the input.
@@ -37,15 +37,45 @@ def get_dataloaders(num_samples, input_dim, output_dim,
     # Split dataset into training and test.
     test_size = int(num_samples * test_split)
     train_size = num_samples - test_size
-    train_dataset, test_dataset = random_split(dataset,
-                                               [train_size, test_size])
+    # Create a generator with a fixed seed for reproducibility.
+    generator = torch.Generator().manual_seed(seed)
+    # Split dataset into training and test using the generator.
+    train_dataset, test_dataset = random_split(
+        dataset,
+        [train_size, test_size],
+        generator=generator,
+    )
 
     # Create DataLoaders.
     train_loader = DataLoader(train_dataset,
                               batch_size=batch_size,
-                              shuffle=True)
+                              shuffle=True,
+                              generator=generator)
     test_loader = DataLoader(test_dataset,
                              batch_size=batch_size,
                              shuffle=False)
 
     return train_loader, test_loader
+
+
+# Example usage
+if __name__ == "__main__":
+    # Parameters
+    num_samples = 1000
+    input_dim = 10
+    output_dim = 1
+    batch_size = 32
+
+    # Generate DataLoaders
+    train_loader, test_loader = get_dataloaders(
+        num_samples=num_samples,
+        input_dim=input_dim,
+        output_dim=output_dim,
+        batch_size=batch_size
+    )
+
+    # Print the shape of the first batch to verify.
+    for batch_x, batch_y in train_loader:
+        print(batch_x)
+        print(batch_y)
+        break
