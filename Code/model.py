@@ -48,12 +48,11 @@ class ResidualBlock(nn.Module):
         identity = x
         out = F.relu(self.linear1(x))
         out = self.linear2(out)
-        out += identity  # Skip connection
+        out += identity  # identity skip connection
         out = F.relu(out)
         return out
 
 
-# TODO adjust ResNet such that the number of parameters is the same as the ANN
 class ResNet(nn.Module):
     def __init__(self, input_dim, output_dim, width, depth):
         """
@@ -63,16 +62,23 @@ class ResNet(nn.Module):
             input_dim (int): Dimension of the input.
             output_dim (int): Dimension of the output.
             width (int): Number of neurons in each hidden layer.
-            depth (int): Number of residual blocks.
+            depth (int): Number of layers (adjusted to match ANN parameters).
         """
         super(ResNet, self).__init__()
 
         # Initial layer: from input_dim to width.
         self.input_layer = nn.Linear(input_dim, width)
 
-        # Residual blocks.
-        self.blocks = nn.ModuleList([ResidualBlock(width)
-                                     for _ in range(depth)])
+        # Adjust the number of residual blocks to match the param. count of ANN
+        num_blocks = max(1, (depth - 1) // 2)
+        self.blocks = nn.ModuleList(
+            [ResidualBlock(width) for _ in range(num_blocks)]
+        )
+
+        # Additional linear layers to match the parameter count.
+        self.linear_layers = nn.ModuleList(
+            [nn.Linear(width, width) for _ in range(depth - 3 - num_blocks)]
+        )
 
         # Output layer: from width to output_dim.
         self.output_layer = nn.Linear(width, output_dim)
@@ -85,6 +91,10 @@ class ResNet(nn.Module):
         for block in self.blocks:
             x = block(x)
 
+        # Pass through additional linear layers.
+        for layer in self.linear_layers:
+            x = F.relu(layer(x))
+
         # Map to the output dimension.
         x = self.output_layer(x)
         return x
@@ -92,11 +102,11 @@ class ResNet(nn.Module):
 
 if __name__ == "__main__":
     # Example usage:
-    model = ANN(input_dim=10, output_dim=2, width=64, depth=3)
+    model = ANN(input_dim=10, output_dim=2, width=11, depth=5)
     print(model)
     # print model summary
     torchsummary.summary(model, (10,), device="cpu")
 
-    model = ResNet(input_dim=10, output_dim=2, width=64, depth=3)
+    model = ResNet(input_dim=10, output_dim=2, width=11, depth=5)
     print(model)
     torchsummary.summary(model, (10,), device="cpu")
