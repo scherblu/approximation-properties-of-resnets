@@ -21,7 +21,7 @@ learning_rate = 1e-3
 
 # Generate parameters for the function
 m = input_dim // 10
-function_num = 3
+function_num = 30
 f_parameter_list = [f_generate_parameters(input_dim, m)
                     for _ in range(function_num)]
 # Generate parameters for the function
@@ -30,7 +30,7 @@ loaders = []
 for f_parameters in f_parameter_list:
     # Generate DataLoaders
     train_loader, test_loader = get_dataloaders(
-        num_samples=100 * input_dim,  # 1000 times the input_dim
+        num_samples=1000 * input_dim,  # 1000 times the input_dim
         input_dim=input_dim,
         f_parameters=f_parameters,
         batch_size=batch_size
@@ -86,6 +86,12 @@ for i, (train_loader, test_loader) in enumerate(loaders):
     resnet_loss_list.append(resnet_loss_over_epochs[-1])
     resnet_loss_list_over_epochs += np.array(resnet_loss_over_epochs)
 
+# save the models
+# torch.save(trained_ann_model.state_dict(),
+#            "./_stored_models/ann_model.pth")
+# torch.save(trained_resnet_model.state_dict(),
+#            "./_stored_models/resnet_model.pth")
+
 ann_loss_list_over_epochs /= len(loaders)
 resnet_loss_list_over_epochs /= len(loaders)
 print("Average test Loss")
@@ -108,4 +114,6 @@ plt.ylabel("Loss")
 plt.title("Loss over Epochs for ANN and ResNet")
 plt.legend()
 plt.grid(True)
+# save the plot as svg
+plt.savefig("./_stored_graphs/loss_over_epochs.svg")
 plt.show()
