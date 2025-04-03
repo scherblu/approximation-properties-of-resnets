@@ -2,16 +2,25 @@ import torch
 from torch import nn
 import torch.optim as optim
 from tqdm import tqdm
+from test import test_model
 
 
-def train_model(model, train_loader, epochs, learning_rate=1e-3,
-                device='cpu', verbose=True):
+def train_model(
+        model,
+        train_loader,
+        test_loader,
+        epochs,
+        learning_rate=1e-3,
+        device='cpu',
+        verbose=True
+        ):
     """
     Trains the given model using the provided training DataLoader.
 
     Parameters:
         model (nn.Module): The neural network model.
         train_loader (DataLoader): DataLoader for the training data.
+        test_loader (DataLoader): DataLoader for the test data.
         epochs (int): Number of training epochs.
         learning_rate (float): Learning rate for Adam optimizer.
         device (str): Device ('cpu' or 'cuda').
@@ -19,12 +28,14 @@ def train_model(model, train_loader, epochs, learning_rate=1e-3,
 
     Returns:
         model (nn.Module): The trained model.
+        loss_over_epochs (list): List of average test losses over epochs.
     """
     torch.manual_seed(42)
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    loss_over_epochs = []
     model.train()
     for epoch in range(epochs):
         running_loss = 0.0
@@ -45,10 +56,16 @@ def train_model(model, train_loader, epochs, learning_rate=1e-3,
             optimizer.step()
 
             running_loss += loss.item()
+
             if verbose:
                 progress_bar.set_postfix({
                                 'Batch': batch_idx + 1,
                                 'Avg Loss': running_loss / (batch_idx + 1)
                 })
+        # Test the model after each epoch.
+        model.eval()
+        av_test_loss = test_model(model, test_loader, verbose=False)
+        model.train()
+        loss_over_epochs.append(av_test_loss)
 
-    return model
+    return model, loss_over_epochs

@@ -19,6 +19,7 @@ def test_model(model, test_loader, device='cpu', verbose=True):
     criterion = nn.MSELoss()
     model.eval()
 
+    loss_list = []
     total_loss = 0.0
     total_samples = 0
 
@@ -30,9 +31,10 @@ def test_model(model, test_loader, device='cpu', verbose=True):
             batch_x, batch_y = batch_x.to(device), batch_y.to(device)
             outputs = model(batch_x)
             loss = criterion(outputs, batch_y)
-            total_loss += loss.item() * batch_x.size(0)
+            loss_list.append(loss.item() * batch_x.size(0))
             total_samples += batch_x.size(0)
 
+    total_loss = sum(loss_list)
     avg_loss = total_loss / total_samples
     if verbose:
         print(f"Test MSE Loss: {avg_loss:.6f}")

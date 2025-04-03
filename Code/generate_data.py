@@ -3,31 +3,19 @@ from torch.utils.data import TensorDataset, DataLoader, random_split
 import numpy as np
 
 
-def f(X, seed=42):
+def f_generate_parameters(d, m):
     """
-    Computes the function:
-    f(x) = sum_{i=1}^{m} [ a_i prod_{j ∈ S_i^1} x_j
-        + b_i sin(prod_{k ∈ S_i^2} x_k )
-        ]
-    where S_i^1 and S_i^2 are random subsets of {1, ..., d}.
-    This function should recreate the function f(x) used in the paper
-    Liu (2024) "Characterizing ResNet’s Universal Approximation Capability".
+    Generates the parameters a, b, S1, and S2 for the function f(x).
 
     Parameters:
-        X (np.ndarray): Input array of shape (num_samples, input_dim)
-                        with values in [0,1].
+        d (int): Dimensionality of the input.
         m (int): Number of terms in the summation.
         seed (int): Random seed for reproducibility.
 
     Returns:
-        np.ndarray: Output array of shape (num_samples, 1).
+        list: A list of tuples (a_i, b_i, S_i1, S_i2) for each term.
     """
-    np.random.seed(seed)
-    d = X.shape[1]  # Set d to the number of features
-    m = d // 10
-
-    num_samples = X.shape[0]
-    output = np.zeros((num_samples, 1))
+    parameters = []
 
     for _ in range(m):
         # Randomly sample indices for S_i^1 and S_i^2 with replacement
@@ -40,6 +28,28 @@ def f(X, seed=42):
         a_i = np.random.uniform(0, 1)
         b_i = np.random.uniform(0, 0.1)
 
+        # Append the parameters as a tuple
+        parameters.append((a_i, b_i, S_i1, S_i2))
+
+    return parameters
+
+
+def f_eval(X, f_parameters):
+    """
+    Evaluates the function f(x) based on the given parameters.
+
+    Parameters:
+        X (np.ndarray): Input array of shape (num_samples, input_dim)
+                        with values in [0,1].
+        f_parameters (list): list of tuples (a_i, b_i, S_i1, S_i2)
+
+    Returns:
+        np.ndarray: Output array of shape (num_samples, 1).
+    """
+    num_samples = X.shape[0]
+    output = np.zeros((num_samples, 1))
+
+    for a_i, b_i, S_i1, S_i2 in f_parameters:
         # Compute the respective terms
         prod_x_S1 = np.prod(X[:, S_i1], axis=1, keepdims=True)
         prod_x_S2 = np.prod(X[:, S_i2], axis=1, keepdims=True)
@@ -50,15 +60,33 @@ def f(X, seed=42):
     return output
 
 
-def get_dataloaders(num_samples, input_dim, output_dim, batch_size,
-                    d=100, test_split=0.1, seed=42):
+def get_X(num_samples, input_dim, seed=42):
+    """
+    Generates a random input tensor X.
+
+    Parameters:
+        num_samples (int): Number of samples.
+        input_dim (int): Dimensionality of the input.
+        d (int): Dimensionality for the function f.
+        seed (int): Random seed for reproducibility.
+
+    Returns:
+        torch.Tensor: Input tensor of shape (num_samples, input_dim).
+    """
+    np.random.seed(seed)
+    X = np.random.uniform(0, 1, (num_samples, input_dim)).astype(np.float32)
+    return X
+
+
+def get_dataloaders(num_samples, input_dim, f_parameters, batch_size,
+                    test_split=0.1, seed=42):
     """
     Generates training and test DataLoaders.
 
     Parameters:
         num_samples (int): Total number of samples.
         input_dim (int): Dimensionality of the input.
-        output_dim (int): Dimensionality of the output.
+        f_parameters (list): Parameters for the function f(x).
         batch_size (int): Batch size for the DataLoaders.
         test_split (float): Fraction of data to be used as test data.
         seed (int): Random seed for reproducibility.
@@ -70,11 +98,11 @@ def get_dataloaders(num_samples, input_dim, output_dim, batch_size,
     np.random.seed(seed)
 
     # Sample uniformly from [0, 1]^input_dim.
-    X = np.random.uniform(0, 1, (num_samples, input_dim)).astype(np.float32)
+    X = get_X(num_samples, input_dim, seed=seed)
     X_tensor = torch.from_numpy(X)
 
     # Compute f(x) using the external function.
-    y = f(X, d).astype(np.float32)
+    y = f_eval(X, f_parameters).astype(np.float32)
     y_tensor = torch.from_numpy(y)
 
     # Create the full dataset.
@@ -113,11 +141,13 @@ if __name__ == "__main__":
     batch_size = 32
 
     # Generate DataLoaders
+    f_parameters = f_generate_parameters(input_dim, 5)
+    # Generate DataLoaders
     train_loader, test_loader = get_dataloaders(
-        num_samples=num_samples,
-        input_dim=input_dim,
-        output_dim=output_dim,
-        batch_size=batch_size
+        num_samples,
+        input_dim,
+        f_parameters,
+        batch_size,
     )
 
     # Print the shape of the first batch to verify.
