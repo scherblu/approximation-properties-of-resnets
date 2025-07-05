@@ -25,6 +25,7 @@ def test_model(model, test_loader, device='cpu', verbose=True):
 
     # No gradient calculation is needed for evaluation.
     with no_grad():
+        # tqdm is used to show progress in a bar if verbose is True.
         data_iterator = (tqdm(test_loader, desc="Testing", ncols=80) if verbose
                          else test_loader)
         for batch_x, batch_y in data_iterator:

@@ -1,4 +1,4 @@
-# import torch
+import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from generate_data import f_generate_parameters, get_dataloaders
@@ -87,10 +87,10 @@ for i, (train_loader, test_loader) in enumerate(loaders):
     resnet_loss_list_over_epochs += np.array(resnet_loss_over_epochs)
 
 # save the models
-# torch.save(trained_ann_model.state_dict(),
-#            "./_stored_models/ann_model.pth")
-# torch.save(trained_resnet_model.state_dict(),
-#            "./_stored_models/resnet_model.pth")
+torch.save(trained_ann_model.state_dict(),
+           "./_stored_models/ann_model.pth")
+torch.save(trained_resnet_model.state_dict(),
+           "./_stored_models/resnet_model.pth")
 
 ann_loss_list_over_epochs /= len(loaders)
 resnet_loss_list_over_epochs /= len(loaders)

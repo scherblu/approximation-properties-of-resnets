@@ -30,6 +30,13 @@ class ANN(nn.Module):
         self.out = nn.Linear(width, output_dim)
 
     def forward(self, x):
+        """
+        Forward pass through the ANN.
+        Parameters:
+            x (torch.Tensor): Input tensor of shape (batch_size, input_dim).
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, output_dim).
+        """
         # Pass through each hidden layer with ReLU activation.
         for layer in self.layers:
             x = F.relu(layer(x))
@@ -40,6 +47,11 @@ class ANN(nn.Module):
 
 class ResidualBlock(nn.Module):
     def __init__(self, width):
+        """
+        Initializes a residual block.
+        Parameters:
+            width (int): Number of neurons in the block.
+        """
         super(ResidualBlock, self).__init__()
         self.linear1 = nn.Linear(width, width)
         self.linear2 = nn.Linear(width, width)
@@ -84,6 +96,13 @@ class ResNet(nn.Module):
         self.output_layer = nn.Linear(width, output_dim)
 
     def forward(self, x):
+        """
+        Forward pass through the ResNet.
+        Parameters:
+            x (torch.Tensor): Input tensor of shape (batch_size, input_dim).
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, output_dim).
+        """
         # Project input to the hidden width.
         x = F.relu(self.input_layer(x))
 
@@ -101,7 +120,7 @@ class ResNet(nn.Module):
 
 
 if __name__ == "__main__":
-    # Example usage:
+    # Example usage for a small ANN and ResNet model:
     model = ANN(input_dim=10, output_dim=2, width=11, depth=5)
     print(model)
     # print model summary

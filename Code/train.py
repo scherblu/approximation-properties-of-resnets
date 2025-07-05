@@ -30,9 +30,10 @@ def train_model(
         model (nn.Module): The trained model.
         loss_over_epochs (list): List of average test losses over epochs.
     """
-    torch.manual_seed(42)
+    torch.manual_seed(42)  # For reproducibility
     model.to(device)
     criterion = nn.MSELoss()
+    # Set up the optimizer using Adam and fixed learning rate.
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
     loss_over_epochs = []
@@ -58,6 +59,7 @@ def train_model(
             running_loss += loss.item()
 
             if verbose:
+                # Update the progress bar with the current batch loss.
                 progress_bar.set_postfix({
                                 'Batch': batch_idx + 1,
                                 'Avg Loss': running_loss / (batch_idx + 1)

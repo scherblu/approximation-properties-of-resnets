@@ -95,7 +95,7 @@ def get_dataloaders(num_samples, input_dim, f_parameters, batch_size,
         train_loader, test_loader (DataLoader, DataLoader):
             Training and test data loaders.
     """
-    np.random.seed(seed)
+    np.random.seed(seed)  # Set seed for reproducibility in numpy
 
     # Sample uniformly from [0, 1]^input_dim.
     X = get_X(num_samples, input_dim, seed=seed)
