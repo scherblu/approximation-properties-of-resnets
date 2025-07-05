@@ -106,12 +106,12 @@ epochs_range = list(range(1, epochs + 1))
 
 # Assuming the loss lists are collected over epochs
 # for the last training iteration
-plt.plot(epochs_range, ann_loss_list_over_epochs, label="ANN Loss")
-plt.plot(epochs_range, resnet_loss_list_over_epochs, label="ResNet Loss")
+plt.plot(epochs_range, ann_loss_list_over_epochs, label="ANN loss")
+plt.plot(epochs_range, resnet_loss_list_over_epochs, label="ResNet loss")
 
 plt.xlabel("Epochs")
-plt.ylabel("Loss")
-plt.title("Loss over Epochs for ANN and ResNet")
+plt.ylabel("Average test loss")
+plt.title("Test loss over epochs for ANN and ResNet")
 plt.legend()
 plt.grid(True)
 # save the plot as svg

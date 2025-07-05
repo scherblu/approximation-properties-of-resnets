@@ -7,9 +7,7 @@ This repository contains the code of the Bachelor's thesis "Approximation Proper
 (link to Thesis in Documentation?)
 
 ## Installation
-- Python 3.12
-- PyTorch
-Maybe provide a conda environment...
+See environment.yml
 
 ## Code structure
 ...
